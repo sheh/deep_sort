@@ -50,7 +50,7 @@ def create_unique_color_uchar(tag, hue_step=0.41):
 
     """
     r, g, b = create_unique_color_float(tag, hue_step)
-    return int(255*r), int(255*g), int(255*b)
+    return int(255 * r), int(255 * g), int(255 * b)
 
 
 class NoVisualization(object):
@@ -86,24 +86,22 @@ class Visualization(object):
     This class shows tracking output in an OpenCV image viewer.
     """
 
-    def __init__(self, seq_info, update_ms):
+    def __init__(self, cap, seq_info, update_ms):
         image_shape = seq_info["image_size"][::-1]
         aspect_ratio = float(image_shape[1]) / image_shape[0]
         image_shape = 1024, int(aspect_ratio * 1024)
-        self.viewer = ImageViewer(
-            update_ms, image_shape, "Figure %s" % seq_info["sequence_name"])
+        self.viewer = ImageViewer(update_ms, image_shape, "Figure")
         self.viewer.thickness = 2
-        self.frame_idx = seq_info["min_frame_idx"]
-        self.last_idx = seq_info["max_frame_idx"]
+        self.cap = cap
 
     def run(self, frame_callback):
         self.viewer.run(lambda: self._update_fun(frame_callback))
 
     def _update_fun(self, frame_callback):
-        if self.frame_idx > self.last_idx:
-            return False  # Terminate
-        frame_callback(self, self.frame_idx)
-        self.frame_idx += 1
+        ret, frame = self.cap.read()
+        if not ret:
+            return False
+        frame_callback(self, frame)
         return True
 
     def set_image(self, image):

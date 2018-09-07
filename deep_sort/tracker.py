@@ -8,6 +8,7 @@ from .track import Track
 
 
 class Tracker:
+
     """
     This is the multi-target tracker.
 
@@ -37,7 +38,7 @@ class Tracker:
 
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=30, n_init=3):
+    def __init__(self, metric, max_iou_distance=0.7, max_age=3000, n_init=4):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age
@@ -70,8 +71,10 @@ class Tracker:
 
         # Update track set.
         for track_idx, detection_idx in matches:
-            self.tracks[track_idx].update(
-                self.kf, detections[detection_idx])
+            updated = self.tracks[track_idx].update(
+                self._next_id, self.kf,  detections[detection_idx])
+            if updated:
+                self._next_id += 1
         for track_idx in unmatched_tracks:
             self.tracks[track_idx].mark_missed()
         for detection_idx in unmatched_detections:
@@ -133,6 +136,5 @@ class Tracker:
     def _initiate_track(self, detection):
         mean, covariance = self.kf.initiate(detection.to_xyah())
         self.tracks.append(Track(
-            mean, covariance, self._next_id, self.n_init, self.max_age,
+            mean, covariance, self.n_init, self.max_age,
             detection.feature))
-        self._next_id += 1

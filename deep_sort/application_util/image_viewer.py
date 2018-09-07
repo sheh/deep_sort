@@ -331,6 +331,7 @@ class ImageViewer(object):
         cv2.destroyWindow(self._caption)
         cv2.waitKey(1)
         cv2.imshow(self._caption, self.image)
+        print('here')
 
     def stop(self):
         """Stop the control loop.
