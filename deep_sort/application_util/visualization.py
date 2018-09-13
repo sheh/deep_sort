@@ -59,9 +59,8 @@ class NoVisualization(object):
     sequence to update the tracker without performing any visualization.
     """
 
-    def __init__(self, seq_info):
-        self.frame_idx = seq_info["min_frame_idx"]
-        self.last_idx = seq_info["max_frame_idx"]
+    def __init__(self, cap):
+        self._cap = cap
 
     def set_image(self, image):
         pass
@@ -76,9 +75,11 @@ class NoVisualization(object):
         pass
 
     def run(self, frame_callback):
-        while self.frame_idx <= self.last_idx:
-            frame_callback(self, self.frame_idx)
-            self.frame_idx += 1
+        while True:
+            ret, frame = self._cap.read()
+            if not ret:
+                return False
+            frame_callback(self, frame)
 
 
 class Visualization(object):
