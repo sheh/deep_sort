@@ -95,8 +95,8 @@ class Visualization(object):
         self.viewer.thickness = 2
         self.cap = cap
 
-    def run(self, frame_callback):
-        self.viewer.run(lambda: self._update_fun(frame_callback))
+    def run(self, frame_callback, display_video):
+        self.viewer.run(lambda: self._update_fun(frame_callback), display_video=display_video)
 
     def _update_fun(self, frame_callback):
         ret, frame = self.cap.read()
