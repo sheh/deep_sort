@@ -2,7 +2,7 @@
 import numpy as np
 import colorsys
 from .image_viewer import ImageViewer
-
+import cv2
 
 def create_unique_color_float(tag, hue_step=0.41):
     """Create a unique RGB color code for a given track id (tag).
@@ -87,23 +87,42 @@ class Visualization(object):
     This class shows tracking output in an OpenCV image viewer.
     """
 
-    def __init__(self, cap, seq_info, update_ms):
+    def __init__(self, cap, seq_info, update_ms, is_online):
         image_shape = seq_info["image_size"][::-1]
         aspect_ratio = float(image_shape[1]) / image_shape[0]
-        image_shape = 1024, int(aspect_ratio * 1024)
+        image_shape = 1024*2, int(aspect_ratio * 1024*2)
         self.viewer = ImageViewer(update_ms, image_shape, "Figure")
         self.viewer.thickness = 2
         self.cap = cap
+        self.fps = 1 if is_online else self.cap.get(cv2.CAP_PROP_FPS)
+        self.is_online = is_online
 
     def run(self, frame_callback, display_video):
         self.viewer.run(lambda: self._update_fun(frame_callback), display_video=display_video)
 
     def _update_fun(self, frame_callback):
-        ret, frame = self.cap.read()
-        if not ret:
+        if self.is_online:
+            cap = cv2.VideoCapture(0)
+            cap.set(3, 1280)
+            cap.set(4, 800)
+            ret, frame = cap.read()
+            cap.release()
+            if not ret:
+                return False
+            frame_callback(self, frame)
+            return True
+        else:
+            success=True
+            while success:
+                frameId = int(round(self.cap.get(1)))
+                success, frame = self.cap.read()
+                if frameId % self.fps == 0:
+                    frame_callback(self, frame)
+                    return True
             return False
-        frame_callback(self, frame)
-        return True
+
+    # def _update_fun(self, frame_callback):
+
 
     def set_image(self, image):
         self.viewer.image = image
